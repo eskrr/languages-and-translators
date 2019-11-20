@@ -1,0 +1,45 @@
+var matrix1[100][100], rows_1, cols_1;
+var matrix2[100][100], rows_2, cols_2;
+var matrixResultado[100][100];
+var medidas_correctas = 0;
+
+function leerDatosMatrices() {
+	while (medidas_correctas == 0) {
+		cout << "Ingrese el numero de renglones de la matriz 1\n";
+		cin >> rows_1;
+		cout << "Ingrese el numero de columnas de la matriz 1\n";
+		cin >> cols_1;
+		cout << "Ingrese el numero de renglones de la matriz 2\n";
+		cin >> rows_2;
+		cout << "Ingrese el numero de columnas de la matriz 2\n";
+		cin >> cols_2;
+		if (rows_1 == rows_2 && cols_1 == cols_2) {
+			medidas_correctas = 1;
+		} else {
+			cout << "Incorrecto, las dimensiones deben ser iguales, intente de nuevo.";
+		}
+	}
+}
+
+function sumarMatrices() {
+	for (var i = o; i < rows_1; i++) {
+		for (var j = 0; j < cols_1; j++) {
+			matrixResultado[i][j] = matriz1[i][j] + matrix2[i][j];
+		}
+	}
+}
+
+function printMatrixResultado() {
+	for (var i = o; i < rows_1; i++) {
+		for (var j = 0; j < cols_1; j++) {
+			cout << matrixResultado[i][j] << " ";
+		}
+		cout << "\n";
+	}
+}
+
+function main() {
+	leerDatosMatrices();
+	sumarMatrices();
+	printMatrizResultado();
+}
