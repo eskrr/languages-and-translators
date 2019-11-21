@@ -213,12 +213,34 @@ def p_if_action_3(p):
     quadruples[jumps_stack.pop()][1] = len(quadruples)
 
 def p_while_sentence(p):
-  'while_sentence : WHILE LPAREN expression RPAREN function_block'
+  'while_sentence : WHILE while_action_1 LPAREN expression RPAREN while_action_2 function_block while_action_3'
   global debug
   if debug:
     print('while_sentence')
     print(p.stack)
     print('\n')
+
+def p_while_action_1(p):
+  'while_action_1 : '
+  global jumps_stack
+  global quadruples
+  jumps_stack.append(len(quadruples))
+
+def p_while_action_2(p):
+  'while_action_2 : '
+  global quadruples
+  global jumps_stack
+  global operands_stack
+  jumps_stack.append(len(quadruples))
+  quadruples.append(['gotofalso', operands_stack.pop(), None])
+
+def p_while_action_3(p):
+  'while_action_3 : '
+  global quadruples
+  global jumps_stack
+  jump = jumps_stack.pop()
+  quadruples.append(('goto', jumps_stack.pop()))
+  quadruples[jump][2] = len(quadruples)
 
 def p_do_while_sentence(p):
   'do_while_sentence :  DO function_block WHILE LPAREN expression RPAREN SEMICOLON'
