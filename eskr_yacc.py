@@ -13,6 +13,7 @@ quadruples = []
 term_operators = {'+', '||', '-'}
 factor_operators = {'*', '/', '&&', '%'}
 relation_operators = {'<', '<=', '==', '!=', '>', '>='}
+temporal_count = 0
 
 def p_program(p):
   'program : program_block'
@@ -97,8 +98,7 @@ def p_input(p):
   '''
 
 def p_declaration(p):
-  '''declaration : type variables EQUAL expression
-                 | type variables'''
+  'declaration : type variables'
   global debug
   global symbols_table
   for symbol in p[2]:
@@ -117,14 +117,31 @@ def p_type(p):
   p[0] = p[1]
 
 def p_assignation(p):
-  '''assignation : variables EQUAL expression
-                 | variables'''
+  'assignation : id assignation_action_1 EQUAL assignation_action_2 expression assignation_action_3'
   global debug
   if debug:
     print('assignation')
     print(p.stack)
     print('\n')
 
+def p_assignation_action_1(p):
+  'assignation_action_1 :'
+  global operands_stack
+  operands_stack.append(p[-1])
+
+def p_assignation_action_2(p):
+  'assignation_action_2 :'
+  global operators_stack
+  operators_stack.append(p[-1])
+
+def p_assignation_action_3(p):
+  'assignation_action_3 :'
+  global operands_stack
+  global operators_stack
+  global quadruples
+  value = operands_stack.pop()
+  variable = operands_stack.pop()
+  quadruples.append((operators_stack.pop(), value, None, variable))
 
 def p_unary_operation(p):
   '''unary_operation : ID PLUS PLUS
@@ -133,6 +150,8 @@ def p_unary_operation(p):
                      | MINUS MINUS ID
   '''
   global debug
+  global quadruples
+  quadruples.append((p[2], p[1], 1, p[1]))
   if debug:
     print('unary')
     print(p.stack)
@@ -243,15 +262,28 @@ def p_while_action_3(p):
   quadruples[jump][2] = len(quadruples)
 
 def p_do_while_sentence(p):
-  'do_while_sentence :  DO function_block WHILE LPAREN expression RPAREN SEMICOLON'
+  'do_while_sentence :  DO do_while_action_1 function_block WHILE LPAREN expression RPAREN do_while_action_2 SEMICOLON'
   global debug
   if debug:
     print('do_while_sentence')
     print(p.stack)
     print('\n')
 
+def p_do_while_action_1(p):
+  'do_while_action_1 : '
+  global jumps_stack
+  global quadruples
+  jumps_stack.append(len(quadruples))
+
+def p_do_while_action_2(p):
+  'do_while_action_2 : '
+  global jumps_stack
+  global quadruples
+  global operands_stack
+  quadruples.append(('gototrue', operands_stack.pop(), jumps_stack.pop()))
+
 def p_for_sentence(p):
-  'for_sentence : FOR LPAREN for_expression RPAREN function_block'
+  'for_sentence : FOR LPAREN for_expression RPAREN function_block for_action_4'
   global debug
   if debug:
     print('for_sentence')
@@ -259,13 +291,47 @@ def p_for_sentence(p):
     print('\n')
 
 def p_for_expression(p):
-  '''for_expression : declaration SEMICOLON expression SEMICOLON assignation
-                    | declaration SEMICOLON expression SEMICOLON unary_operation'''
+  '''for_expression : assignation for_action_1 SEMICOLON expression for_action_2 SEMICOLON assignation for_action_3
+                    | assignation for_action_1 SEMICOLON expression for_action_2 SEMICOLON unary_operation for_action_3'''
   global debug
   if debug:
     print('p_for_expression')
     print(p.stack)
     print('\n')
+
+def p_for_action_1(p):
+  'for_action_1 :'
+  global jumps_stack
+  global quadruples
+  jumps_stack.append(len(quadruples))
+
+def p_for_action_2(p):
+  'for_action_2 :'
+  global jumps_stack
+  global quadruples
+  global operands_stack
+  quadruples.append(['gotofalso', operands_stack.pop(), None])
+  quadruples.append(['goto', None])
+  condition_jump = jumps_stack.pop()
+  jumps_stack.append(len(quadruples) - 2)
+  jumps_stack.append(len(quadruples))
+  jumps_stack.append(len(quadruples) - 1)
+  jumps_stack.append(condition_jump)
+  print(jumps_stack)
+
+def p_for_action_3(p):
+  'for_action_3 :'
+  global jumps_stack
+  global quadruples
+  quadruples.append(('goto', jumps_stack.pop()))
+  quadruples[jumps_stack.pop()][1] = len(quadruples)
+
+def p_for_action_4(p):
+  'for_action_4 :'
+  global jumps_stack
+  global quadruples
+  quadruples.append(('goto', jumps_stack.pop()))
+  quadruples[jumps_stack.pop()][2] = len(quadruples)
 
 def p_expression(p):
   '''expression : simple_expression
@@ -385,21 +451,27 @@ def p_expression_action_4(p):
   'expression_action_4 :'
   global operands_stack
   global operators_stack
+  global temporal_count
   if len(operators_stack) and operators_stack[-1] in term_operators:
       operand_2 = operands_stack.pop()
       operand_1 = operands_stack.pop()
-      quadruples.append((operators_stack.pop(), operand_1, operand_2, 'T'))
-      operands_stack.append('T')
+      temporal = 'T' + str(temporal_count)
+      temporal_count = temporal_count + 1
+      quadruples.append((operators_stack.pop(), operand_1, operand_2, temporal))
+      operands_stack.append(temporal)
 
 def p_expression_action_5(p):
   'expression_action_5 :'
   global operands_stack
   global operators_stack
+  global temporal_count
   if len(operators_stack) and operators_stack[-1] in factor_operators:
       operand_2 = operands_stack.pop()
       operand_1 = operands_stack.pop()
-      quadruples.append((operators_stack.pop(), operand_1, operand_2, 'T'))
-      operands_stack.append('T')
+      temporal = 'T' + str(temporal_count)
+      temporal_count = temporal_count + 1
+      quadruples.append((operators_stack.pop(), operand_1, operand_2, temporal))
+      operands_stack.append(temporal)
 
 def p_expression_action_6(p):
   'expression_action_6 :'
@@ -420,11 +492,14 @@ def p_expression_action_9(p):
   'expression_action_9 :'
   global operands_stack
   global operators_stack
+  global temporal_count
   if len(operators_stack) and operators_stack[-1] in relation_operators:
       operand_2 = operands_stack.pop()
       operand_1 = operands_stack.pop()
-      quadruples.append((operators_stack.pop(), operand_1, operand_2, 'T'))
-      operands_stack.append('T')
+      temporal = 'T' + str(temporal_count)
+      temporal_count = temporal_count + 1
+      quadruples.append((operators_stack.pop(), operand_1, operand_2, temporal))
+      operands_stack.append(temporal)
  
 # Build the parser
 global debug
