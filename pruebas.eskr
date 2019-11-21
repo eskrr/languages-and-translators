@@ -1,4 +1,4 @@
-int x, x;
+int x, i;
 
 function main() {
 	for(i = 2; i < 2; i++) {

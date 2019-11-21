@@ -83,7 +83,12 @@ def p_assignation(p):
 def p_assignation_action_1(p):
   'assignation_action_1 :'
   global operands_stack
-  operands_stack.append(p[-1])
+  if p[-1] in symbols_table:
+    operands_stack.append(p[-1])
+  else:
+    print('Variable not declared ' + p[-1])
+    raise SyntaxError('Variable not declared ' + p[-1])
+
 
 def p_assignation_action_2(p):
   'assignation_action_2 :'
