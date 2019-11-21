@@ -63,7 +63,14 @@ def p_input(p):
   '''
 
 def p_declaration(p):
-  'declaration : type variables'  
+  'declaration : type variables' 
+  global symbols_table  
+  for symbol in p[2]: 
+    if symbol not in symbols_table: 
+      symbols_table[symbol] = p[1]  
+    else:
+      print('Variable redeclaration')
+      raise SyntaxError('Variable redeclaration')
 
 def p_type(p):
   '''type : INT

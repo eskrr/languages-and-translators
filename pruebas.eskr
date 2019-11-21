@@ -1,3 +1,5 @@
+int x, x;
+
 function main() {
 	for(i = 2; i < 2; i++) {
 		if ( 8 > 10) {
