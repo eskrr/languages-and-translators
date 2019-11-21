@@ -8,6 +8,7 @@ start = 'program'
 symbols_table = {}
 operands_stack = []
 operators_stack = []
+jumps_stack = []
 quadruples = []
 term_operators = {'+', '||', '-'}
 factor_operators = {'*', '/', '&&', '%'}
@@ -174,14 +175,42 @@ def p_function_call(p):
     print('\n')
 
 def p_if_sentence(p):
-  '''if_sentence : IF LPAREN expression RPAREN function_block empty
-                 | IF LPAREN expression RPAREN function_block ELSE function_block
+  '''if_sentence : IF LPAREN expression RPAREN if_action_1 function_block empty if_action_2
+                 | IF LPAREN expression RPAREN if_action_1 function_block ELSE if_action_2 function_block if_action_3
   '''
   global debug
   if debug:
     print('if_sentence')
     print(p.stack)
     print('\n')
+
+def p_if_action_1(p):
+  'if_action_1 :'
+  global operands_stack
+  global jumps_stack
+  global quadruples
+  jumps_stack.append(len(quadruples))
+  quadruples.append(['gotofalso', operands_stack.pop(), None])
+
+def p_if_action_2(p):
+  'if_action_2 : '
+  global operands_stack
+  global jumps_stack
+  global quadruples
+  if p[-1] == 'else':
+    quadruples.append(['goto', None])
+  if len(jumps_stack):
+    quadruples[jumps_stack.pop()][2] = len(quadruples)
+    if p[-1] == 'else':
+      jumps_stack.append(len(quadruples) - 1)
+
+def p_if_action_3(p):
+  'if_action_3 :'
+  global operands_stack
+  global jumps_stack
+  global quadruples
+  if len(jumps_stack):
+    quadruples[jumps_stack.pop()][1] = len(quadruples)
 
 def p_while_sentence(p):
   'while_sentence : WHILE LPAREN expression RPAREN function_block'
@@ -363,8 +392,6 @@ def p_expression_action_7(p):
 def p_expression_action_8(p):
   'expression_action_8 :'
   global operators_stack
-  print('action: 8')
-  print(p[-1])
   operators_stack.append(p[-1])
 
 def p_expression_action_9(p):
@@ -387,4 +414,6 @@ s = file('pruebas.eskr', 'r').read()
 result = parser.parse(s)
 # print(result)
 # print(symbols_table)
-print(quadruples)
+# print(quadruples)
+for i in range(len(quadruples)):
+  print(i, quadruples[i])
