@@ -4,10 +4,14 @@ import ply.yacc as yacc
 # Get the token map from the lexer.  This is required.
 from eskr_lex import tokens
 
-start = 'expression'
+start = 'program'
 symbols_table = {}
 operands_stack = []
 operators_stack = []
+quadruples = []
+term_operators = {'+', '||', '-'}
+factor_operators = {'*', '/', '&&', '%'}
+relation_operators = {'<', '<=', '==', '!=', '>', '>='}
 
 def p_program(p):
   'program : program_block'
@@ -214,12 +218,12 @@ def p_for_expression(p):
 
 def p_expression(p):
   '''expression : simple_expression
-                | expression LESS_THAN simple_expression   
-                | expression LESS_OR_EQUAL_THAN simple_expression   
-                | expression EQUAL_THAN simple_expression   
-                | expression DIFFERENT_THAN simple_expression   
-                | expression GREATER_THAN simple_expression   
-                | expression GREATER_OR_EQUAL_THAN simple_expression'''
+                | expression LESS_THAN expression_action_8 simple_expression expression_action_9   
+                | expression LESS_OR_EQUAL_THAN expression_action_8 simple_expression expression_action_9   
+                | expression EQUAL_THAN expression_action_8 simple_expression expression_action_9   
+                | expression DIFFERENT_THAN expression_action_8 simple_expression expression_action_9   
+                | expression GREATER_THAN expression_action_8 simple_expression expression_action_9   
+                | expression GREATER_OR_EQUAL_THAN expression_action_8 simple_expression expression_action_9'''
   global debug
   if debug:
     print('p_expression')
@@ -227,12 +231,12 @@ def p_expression(p):
     print('\n')
 
 def p_simple_expression(p):
-  '''simple_expression : term
-                       | PLUS term
-                       | MINUS term
-                       | simple_expression OR expression_action_2 term
-                       | simple_expression PLUS expression_action_2 term
-                       | simple_expression MINUS expression_action_2 term'''
+  '''simple_expression : term expression_action_4
+                       | PLUS term expression_action_4
+                       | MINUS term expression_action_4
+                       | simple_expression OR expression_action_2 term expression_action_4
+                       | simple_expression PLUS expression_action_2 term expression_action_4
+                       | simple_expression MINUS expression_action_2 term expression_action_4'''
   global debug
   if debug:
     print('p_simple_expression')
@@ -241,10 +245,12 @@ def p_simple_expression(p):
 
 def p_term(p):
   '''term : factor
-          | term TIMES expression_action_3 factor
-          | term DIVIDE expression_action_3 factor
-          | term MOD expression_action_3 factor
-          | term AND expression_action_3 factor'''
+          | term TIMES expression_action_3 factor expression_action_5
+          | term DIVIDE expression_action_3 factor expression_action_5
+          | term MOD expression_action_3 factor expression_action_5
+          | term AND expression_action_3 factor expression_action_5'''
+  if len(p) == 2:
+    p[0] = p[1]
   global debug
   if debug:
     print('p_term')
@@ -255,7 +261,12 @@ def p_factor(p):
   '''factor : id expression_action_1
             | number expression_action_1
             | NOT id expression_action_1
-            | LPAREN expression RPAREN'''
+            | expression_action_6 LPAREN expression RPAREN expression_action_7'''
+  if p[1] != '(':
+    if len(p) == 4:
+      p[0] = p[2]
+    else:
+      p[0] = p[1]
   global debug
   if debug:
     print('p_factor')
@@ -307,23 +318,64 @@ def p_error(p):
 def p_expression_action_1(p):
   'expression_action_1 :'
   global operands_stack
-  print('action 1')
-  print(p[-1])
   operands_stack.append(p[-1])
 
 def p_expression_action_2(p):
   'expression_action_2 :'
-  global operands_stack
-  print('action 2')
-  print(p[-1])
+  global operators_stack
   operators_stack.append(p[-1])
 
 def p_expression_action_3(p):
   'expression_action_3 :'
+  global operators_stack
+  operators_stack.append(p[-1])
+
+def p_expression_action_4(p):
+  'expression_action_4 :'
   global operands_stack
-  print('action 3')
+  global operators_stack
+  if len(operators_stack) and operators_stack[-1] in term_operators:
+      operand_2 = operands_stack.pop()
+      operand_1 = operands_stack.pop()
+      quadruples.append((operators_stack.pop(), operand_1, operand_2, 'T'))
+      operands_stack.append('T')
+
+def p_expression_action_5(p):
+  'expression_action_5 :'
+  global operands_stack
+  global operators_stack
+  if len(operators_stack) and operators_stack[-1] in factor_operators:
+      operand_2 = operands_stack.pop()
+      operand_1 = operands_stack.pop()
+      quadruples.append((operators_stack.pop(), operand_1, operand_2, 'T'))
+      operands_stack.append('T')
+
+def p_expression_action_6(p):
+  'expression_action_6 :'
+  global operators_stack
+  operators_stack.append(None)
+
+def p_expression_action_7(p):
+  'expression_action_7 :'
+  global operators_stack
+  operators_stack.pop()
+
+def p_expression_action_8(p):
+  'expression_action_8 :'
+  global operators_stack
+  print('action: 8')
   print(p[-1])
   operators_stack.append(p[-1])
+
+def p_expression_action_9(p):
+  'expression_action_9 :'
+  global operands_stack
+  global operators_stack
+  if len(operators_stack) and operators_stack[-1] in relation_operators:
+      operand_2 = operands_stack.pop()
+      operand_1 = operands_stack.pop()
+      quadruples.append((operators_stack.pop(), operand_1, operand_2, 'T'))
+      operands_stack.append('T')
  
 # Build the parser
 global debug
@@ -335,3 +387,4 @@ s = file('pruebas.eskr', 'r').read()
 result = parser.parse(s)
 # print(result)
 # print(symbols_table)
+print(quadruples)
