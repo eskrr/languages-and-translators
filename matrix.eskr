@@ -1,7 +1,8 @@
-var matrix1[100][100], rows_1, cols_1;
-var matrix2[100][100], rows_2, cols_2;
-var matrixResultado[100][100];
-var medidas_correctas = 0;
+int matrix1[100][100], rows_1, cols_1;
+int matrix2[100][100], rows_2, cols_2;
+int matrixResultado[100][100];
+int medidas_correctas = 0;
+double test, test, test;
 
 function leerDatosMatrices() {
 	while (medidas_correctas == 0) {
@@ -22,16 +23,16 @@ function leerDatosMatrices() {
 }
 
 function sumarMatrices() {
-	for (var i = o; i < rows_1; i++) {
-		for (var j = 0; j < cols_1; j++) {
+	for (int i = o; i < rows_1; i++) {
+		for (int j = 0; j < cols_1; j++) {
 			matrixResultado[i][j] = matriz1[i][j] + matrix2[i][j];
 		}
 	}
 }
 
 function printMatrixResultado() {
-	for (var i = o; i < rows_1; i++) {
-		for (var j = 0; j < cols_1; j++) {
+	for (int i = o; i < rows_1; i++) {
+		for (int j = 0; j < cols_1; j++) {
 			cout << matrixResultado[i][j] << " ";
 		}
 		cout << "\n";

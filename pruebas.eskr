@@ -1,5 +1,1 @@
-if (rows_1 == rows_2) {
-	medidas_correctas = 1;
-} else {
-	x = 1;
-}
+x % y
