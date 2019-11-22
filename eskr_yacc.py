@@ -5,10 +5,22 @@ import ply.yacc as yacc
 from eskr_lex import tokens
 
 start = 'program'
-symbols_table = {}
-functions_table = {}
-operands_stack = []
+
+global symbols_table
+global functions_table
+global operands_stack
+global operands_stack
+global jumps_stack
+global quadruples
+global term_operators
+global factor_operators
+global relation_operators
+global temporal_count
+
 operators_stack = []
+operands_stack = []
+functions_table = {}
+symbols_table = {}
 jumps_stack = []
 quadruples = [['goto', None]]
 term_operators = {'+', '||', '-'}
@@ -33,8 +45,7 @@ def p_main_function(p):
 
 def p_start_function_action(p):
   'start_function_action : '
-  global functions_table
-  global quadruples
+  global functions_table, quadruples
   functions_table[p[-1]] = len(quadruples)
 
 def p_start_main_function_action(p):
@@ -45,7 +56,7 @@ def p_start_main_function_action(p):
 def p_end_function_action(p):
   'end_function_action : '
   global quadruples
-  quadruples.append(('return'))
+  quadruples.append(['return'])
 
 def p_function_block(p):
   'function_block : LBRACE instruction RBRACE'
@@ -81,7 +92,7 @@ def p_input(p):
 
 def p_declaration(p):
   'declaration : type variables' 
-  global symbols_table  
+  global symbols_table
   for symbol in p[2]: 
     if symbol not in symbols_table: 
       symbols_table[symbol] = p[1]  
@@ -99,13 +110,12 @@ def p_assignation(p):
 
 def p_assignation_action_1(p):
   'assignation_action_1 :'
-  global operands_stack
+  global operands_stack, symbols_table
   if p[-1] in symbols_table:
     operands_stack.append(p[-1])
   else:
     print('Variable not declared ' + p[-1])
     raise SyntaxError('Variable not declared ' + p[-1])
-
 
 def p_assignation_action_2(p):
   'assignation_action_2 :'
@@ -114,9 +124,7 @@ def p_assignation_action_2(p):
 
 def p_assignation_action_3(p):
   'assignation_action_3 :'
-  global operands_stack
-  global operators_stack
-  global quadruples
+  global operands_stack, operators_stack, quadruples
   value = operands_stack.pop()
   variable = operands_stack.pop()
   quadruples.append((operators_stack.pop(), value, None, variable))
@@ -157,7 +165,7 @@ def p_function_call(p):
 
 def p_function_call_action(p):
   'function_call_action :'
-  global quadruples
+  global quadruples, functions_table
   quadruples.append(('gosub', functions_table[p[-1]]))
 
 
@@ -168,17 +176,13 @@ def p_if_sentence(p):
 
 def p_if_action_1(p):
   'if_action_1 :'
-  global operands_stack
-  global jumps_stack
-  global quadruples
+  global operands_stack, jumps_stack, quadruples
   jumps_stack.append(len(quadruples))
   quadruples.append(['gotofalso', operands_stack.pop(), None])
 
 def p_if_action_2(p):
   'if_action_2 : '
-  global operands_stack
-  global jumps_stack
-  global quadruples
+  global jumps_stack, quadruples
   if p[-1] == 'else':
     quadruples.append(['goto', None])
   if len(jumps_stack):
@@ -188,9 +192,7 @@ def p_if_action_2(p):
 
 def p_if_action_3(p):
   'if_action_3 :'
-  global operands_stack
-  global jumps_stack
-  global quadruples
+  global jumps_stack, quadruples
   if len(jumps_stack):
     quadruples[jumps_stack.pop()][1] = len(quadruples)
 
@@ -199,22 +201,18 @@ def p_while_sentence(p):
 
 def p_while_action_1(p):
   'while_action_1 : '
-  global jumps_stack
-  global quadruples
+  global jumps_stack, quadruples
   jumps_stack.append(len(quadruples))
 
 def p_while_action_2(p):
   'while_action_2 : '
-  global quadruples
-  global jumps_stack
-  global operands_stack
+  global quadruples, jumps_stack, operands_stack
   jumps_stack.append(len(quadruples))
   quadruples.append(['gotofalso', operands_stack.pop(), None])
 
 def p_while_action_3(p):
   'while_action_3 : '
-  global quadruples
-  global jumps_stack
+  global quadruples, jumps_stack
   jump = jumps_stack.pop()
   quadruples.append(('goto', jumps_stack.pop()))
   quadruples[jump][2] = len(quadruples)
@@ -224,15 +222,12 @@ def p_do_while_sentence(p):
 
 def p_do_while_action_1(p):
   'do_while_action_1 : '
-  global jumps_stack
-  global quadruples
+  global jumps_stack, quadruples
   jumps_stack.append(len(quadruples))
 
 def p_do_while_action_2(p):
   'do_while_action_2 : '
-  global jumps_stack
-  global quadruples
-  global operands_stack
+  global jumps_stack, quadruples, operands_stack
   quadruples.append(('gototrue', operands_stack.pop(), jumps_stack.pop()))
 
 def p_for_sentence(p):
@@ -244,15 +239,12 @@ def p_for_expression(p):
 
 def p_for_action_1(p):
   'for_action_1 :'
-  global jumps_stack
-  global quadruples
+  global jumps_stack, quadruples
   jumps_stack.append(len(quadruples))
 
 def p_for_action_2(p):
   'for_action_2 :'
-  global jumps_stack
-  global quadruples
-  global operands_stack
+  global jumps_stack, quadruples, operands_stack
   quadruples.append(['gotofalso', operands_stack.pop(), None])
   quadruples.append(['goto', None])
   condition_jump = jumps_stack.pop()
@@ -264,15 +256,13 @@ def p_for_action_2(p):
 
 def p_for_action_3(p):
   'for_action_3 :'
-  global jumps_stack
-  global quadruples
+  global jumps_stack, quadruples
   quadruples.append(('goto', jumps_stack.pop()))
   quadruples[jumps_stack.pop()][1] = len(quadruples)
 
 def p_for_action_4(p):
   'for_action_4 :'
-  global jumps_stack
-  global quadruples
+  global jumps_stack, quadruples
   quadruples.append(('goto', jumps_stack.pop()))
   quadruples[jumps_stack.pop()][2] = len(quadruples)
 
@@ -352,9 +342,7 @@ def p_expression_action_3(p):
 
 def p_expression_action_4(p):
   'expression_action_4 :'
-  global operands_stack
-  global operators_stack
-  global temporal_count
+  global operands_stack, operators_stack, temporal_count, term_operators, quadruples
   if len(operators_stack) and operators_stack[-1] in term_operators:
       operand_2 = operands_stack.pop()
       operand_1 = operands_stack.pop()
@@ -365,9 +353,7 @@ def p_expression_action_4(p):
 
 def p_expression_action_5(p):
   'expression_action_5 :'
-  global operands_stack
-  global operators_stack
-  global temporal_count
+  global operands_stack, operators_stack, temporal_count, factor_operators, quadruples
   if len(operators_stack) and operators_stack[-1] in factor_operators:
       operand_2 = operands_stack.pop()
       operand_1 = operands_stack.pop()
@@ -393,9 +379,7 @@ def p_expression_action_8(p):
 
 def p_expression_action_9(p):
   'expression_action_9 :'
-  global operands_stack
-  global operators_stack
-  global temporal_count
+  global operands_stack, operators_stack, temporal_count, relation_operators, quadruples
   if len(operators_stack) and operators_stack[-1] in relation_operators:
       operand_2 = operands_stack.pop()
       operand_1 = operands_stack.pop()
@@ -410,9 +394,7 @@ parser = yacc.yacc()
 
 s = file('pruebas.eskr', 'r').read()
 result = parser.parse(s)
-# print(result)
-# print(symbols_table)
-# print(quadruples)
+print(symbols_table)
 print(functions_table)
 for i in range(len(quadruples)):
   print(i, quadruples[i])
