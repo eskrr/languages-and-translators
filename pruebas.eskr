@@ -1,10 +1,15 @@
 int x, i;
 
+function add() {
+	x = y + z;
+}
+
 function main() {
 	for(i = 2; i < 2; i++) {
 		if ( 8 > 10) {
 			x = x*x;
 		}
 	}
+	add();
 	x = 9 + 20;
 }

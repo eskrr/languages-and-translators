@@ -6,10 +6,11 @@ from eskr_lex import tokens
 
 start = 'program'
 symbols_table = {}
+functions_table = {}
 operands_stack = []
 operators_stack = []
 jumps_stack = []
-quadruples = []
+quadruples = [['goto', None]]
 term_operators = {'+', '||', '-'}
 factor_operators = {'*', '/', '&&', '%'}
 relation_operators = {'<', '<=', '==', '!=', '>', '>='}
@@ -25,10 +26,26 @@ def p_program_block(p):
                    | main_function'''
 
 def p_normal_function(p):
-  'normal_function : FUNCTION ID LPAREN RPAREN function_block'
+  'normal_function : FUNCTION ID start_function_action LPAREN RPAREN function_block end_function_action'
 
 def p_main_function(p):
-  'main_function : FUNCTION MAIN LPAREN RPAREN function_block'
+  'main_function : FUNCTION MAIN start_main_function_action LPAREN RPAREN function_block'
+
+def p_start_function_action(p):
+  'start_function_action : '
+  global functions_table
+  global quadruples
+  functions_table[p[-1]] = len(quadruples)
+
+def p_start_main_function_action(p):
+  'start_main_function_action : '
+  global quadruples
+  quadruples[0][1] = len(quadruples)
+
+def p_end_function_action(p):
+  'end_function_action : '
+  global quadruples
+  quadruples.append(('return'))
 
 def p_function_block(p):
   'function_block : LBRACE instruction RBRACE'
@@ -136,7 +153,13 @@ def p_vector(p):
   ''' 
 
 def p_function_call(p):
-  'function_call : ID LPAREN RPAREN'
+  'function_call : ID function_call_action LPAREN RPAREN'
+
+def p_function_call_action(p):
+  'function_call_action :'
+  global quadruples
+  quadruples.append(('gosub', functions_table[p[-1]]))
+
 
 def p_if_sentence(p):
   '''if_sentence : IF LPAREN expression RPAREN if_action_1 function_block empty if_action_2
@@ -390,5 +413,6 @@ result = parser.parse(s)
 # print(result)
 # print(symbols_table)
 # print(quadruples)
+print(functions_table)
 for i in range(len(quadruples)):
   print(i, quadruples[i])
