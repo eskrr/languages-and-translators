@@ -1,0 +1,34 @@
+int x, cond_1, cond_2;
+
+function main() {
+    do {
+        cout << "Ingrese un numero de 0 a 7: " << endl;
+        cin >> x;
+        cond_1 = x < 0;
+        cond_2 = x > 7;
+    } while (cond_1 || cond_2);
+    if (x == 0) {
+    	cout << "cero" << endl;
+    }
+    if (x == 1) {
+    	cout << "uno" << endl;
+    }
+    if (x == 2) {
+    	cout << "dos" << endl;
+    }
+    if (x == 3) {
+    	cout << "tres" << endl;
+    }
+    if (x == 4) {
+    	cout << "cuatro" << endl;
+    }
+    if (x == 5) {
+    	cout << "cinco" << endl;
+    }
+    if (x == 6) {
+    	cout << "seis" << endl;
+    }
+    if (x == 7) {
+    	cout << "siete" << endl;
+    }
+}

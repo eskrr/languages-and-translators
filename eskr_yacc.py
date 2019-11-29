@@ -84,6 +84,8 @@ def p_print(p):
                        | OUTSTREAM expression print_action
                        | OUTSTREAM TEXT print_action output_expression
                        | OUTSTREAM TEXT print_action
+                       | OUTSTREAM ENDL print_action output_expression
+                       | OUTSTREAM ENDL print_action
   '''
 
 def p_print_action(p):
@@ -91,7 +93,10 @@ def p_print_action(p):
   global quadruples
   global operands_stack
   if p[-1]:
-    quadruples.append(('print', p[-1]))
+    if p[-1] == 'endl':
+      quadruples.append(('print', '\n'))
+    else:
+      quadruples.append(('print', p[-1]))
   else:
     quadruples.append(('print', operands_stack.pop()))
 
@@ -124,7 +129,7 @@ def p_type(p):
   p[0] = p[1]
 
 def p_assignation(p):
-  'assignation : id assignation_action_1 EQUAL assignation_action_2 expression assignation_action_3'
+  'assignation : id assignation_action_1 EQUAL assignation_action_2 expression_1 assignation_action_3'
 
 def p_assignation_action_1(p):
   'assignation_action_1 :'
@@ -188,8 +193,8 @@ def p_function_call_action(p):
 
 
 def p_if_sentence(p):
-  '''if_sentence : IF LPAREN expression RPAREN if_action_1 function_block empty if_action_2
-                 | IF LPAREN expression RPAREN if_action_1 function_block ELSE if_action_2 function_block if_action_3
+  '''if_sentence : IF LPAREN expression_1 RPAREN if_action_1 function_block empty if_action_2
+                 | IF LPAREN expression_1 RPAREN if_action_1 function_block ELSE if_action_2 function_block if_action_3
   '''
 
 def p_if_action_1(p):
@@ -215,7 +220,7 @@ def p_if_action_3(p):
     quadruples[jumps_stack.pop()][1] = len(quadruples)
 
 def p_while_sentence(p):
-  'while_sentence : WHILE while_action_1 LPAREN expression RPAREN while_action_2 function_block while_action_3'
+  'while_sentence : WHILE while_action_1 LPAREN expression_1 RPAREN while_action_2 function_block while_action_3'
 
 def p_while_action_1(p):
   'while_action_1 : '
@@ -236,7 +241,7 @@ def p_while_action_3(p):
   quadruples[jump][2] = len(quadruples)
 
 def p_do_while_sentence(p):
-  'do_while_sentence :  DO do_while_action_1 function_block WHILE LPAREN expression RPAREN do_while_action_2 SEMICOLON'
+  'do_while_sentence :  DO do_while_action_1 function_block WHILE LPAREN expression_1 RPAREN do_while_action_2 SEMICOLON'
 
 def p_do_while_action_1(p):
   'do_while_action_1 : '
@@ -252,8 +257,8 @@ def p_for_sentence(p):
   'for_sentence : FOR LPAREN for_expression RPAREN function_block for_action_4'
 
 def p_for_expression(p):
-  '''for_expression : assignation for_action_1 SEMICOLON expression for_action_2 SEMICOLON assignation for_action_3
-                    | assignation for_action_1 SEMICOLON expression for_action_2 SEMICOLON unary_operation for_action_3'''
+  '''for_expression : assignation for_action_1 SEMICOLON expression_1 for_action_2 SEMICOLON assignation for_action_3
+                    | assignation for_action_1 SEMICOLON expression_1 for_action_2 SEMICOLON unary_operation for_action_3'''
 
 def p_for_action_1(p):
   'for_action_1 :'
@@ -284,6 +289,10 @@ def p_for_action_4(p):
   quadruples.append(('goto', jumps_stack.pop()))
   quadruples[jumps_stack.pop()][2] = len(quadruples)
 
+def p_expression_1(p):
+  '''expression_1 : expression
+                  | expression AND expression_action_3 expression expression_action_5   '''
+
 def p_expression(p):
   '''expression : simple_expression
                 | expression LESS_THAN expression_action_8 simple_expression expression_action_9   
@@ -305,8 +314,7 @@ def p_term(p):
   '''term : factor
           | term TIMES expression_action_3 factor expression_action_5
           | term DIVIDE expression_action_3 factor expression_action_5
-          | term MOD expression_action_3 factor expression_action_5
-          | term AND expression_action_3 factor expression_action_5'''
+          | term MOD expression_action_3 factor expression_action_5'''
   if len(p) == 2:
     p[0] = p[1]
 
@@ -328,7 +336,7 @@ def p_number(p):
 
 def p_real(p):
   'real : NUMBER DOT NUMBER'
-  p[0] = float(''.join([1], p[2], p[3]))
+  p[0] = float(''.join( [str(a) for a in p[1:len(p)]] ))
 
 def p_integer(p):
   'integer : NUMBER'
@@ -408,9 +416,8 @@ def p_expression_action_9(p):
  
 # Build the parser
 parser = yacc.yacc()
- 
 
-s = file('pruebas.eskr', 'r').read()
+s = file('if.eskr', 'r').read()
 result = parser.parse(s)
 print(symbols_table)
 print(functions_table)

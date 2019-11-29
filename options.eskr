@@ -1,0 +1,66 @@
+int x, y, opt, result, i, n, temp, e, result_1, result_2;
+float sum;
+
+function factorial() {
+	result = 1;
+    for (i = 2; i <= x; i++) {
+    	result = result * i;
+    }
+}
+
+function power() {
+	if (y == 0) {
+		if (x == 0) {
+			result = 0;
+		} else {
+			result = 1;
+		}
+	} else {
+		result = x;
+		for (i = 0; i < y - 1; i++) {
+			result = result * x;
+		}
+	}
+}
+
+function euler() {
+	sum = 0.0;
+	for (y = 0; y <= 100; y++) {
+		x = e;
+		power();
+		result_1 = result;
+		x = y;
+		factorial();
+		result_2 = result;
+		sum = sum + (result_1 / result_2);
+	}
+	result = sum;
+}
+
+function main() {
+	cout << "Introduzca una opcion: " << endl;
+	do {
+		cout << "1) x!" << endl;
+		cout << "2) x^y" << endl;
+		cout << "3) e^x" << endl;
+		cin >> opt;
+		if (opt == 1) {
+			cout << "Introduzca el valor de x" << endl;
+			cin >> x;
+			factorial();
+			cout << "Resultado: " << result << endl;
+		}
+		if (opt == 2) {
+			cout << "Introduzca el valor de x seguido del de y" << endl;
+			cin >> x >> y;
+			power();
+			cout << "Resultado: " << result << endl;
+		}
+		if (opt == 3) {
+			cout << "Introduzca el valor de x" << endl;
+			cin >> e;
+			euler();
+			cout << "Resultado: " << sum << endl;
+		}
+	} while(opt > 0 && opt < 4);
+}

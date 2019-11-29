@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import division
 import sys
 
 class Executer:
@@ -6,69 +8,120 @@ class Executer:
     self.symbols_table = symbols_table
     self.temporals = [None] * temporal_count
     self.program_counter = 0
+    self.calls_stack = []
+
+  def get_operator_value(self, operator):
+    if type(operator) is str: 
+      if operator[0] == '#':
+        return self.temporals[int(operator[1:len(operator)])]
+      return self.symbols_table[operator].value
+    return operator
+
+  def set_operator_value(self, operator, value):
+    if operator[0] == '#':
+      self.temporals[int(operator[1:len(operator)])] = value
+    else:
+      self.symbols_table[operator].value = eval(self.symbols_table[operator].type)(value)
 
   def add_op(self, operator_1, operator_2, result):
-    print(sys._getframe(0).f_code.co_name)
+    operator_1 = self.get_operator_value(operator_1)
+    operator_2 = self.get_operator_value(operator_2)
+    self.set_operator_value(result, operator_1 + operator_2)
 
   def or_op(self, operator_1, operator_2, result):
-    print(sys._getframe(0).f_code.co_name)
+    operator_1 = self.get_operator_value(operator_1)
+    operator_2 = self.get_operator_value(operator_2)
+    self.set_operator_value(result, operator_1 or operator_2)
 
   def sub_op(self, operator_1, operator_2, result):
-    print(sys._getframe(0).f_code.co_name)
+    operator_1 = self.get_operator_value(operator_1)
+    operator_2 = self.get_operator_value(operator_2)
+    self.set_operator_value(result, operator_1 - operator_2)
 
   def mul_op(self, operator_1, operator_2, result):
-    print(sys._getframe(0).f_code.co_name)
+    operator_1 = self.get_operator_value(operator_1)
+    operator_2 = self.get_operator_value(operator_2)
+    self.set_operator_value(result, operator_1 * operator_2)
 
   def div_op(self, operator_1, operator_2, result):
-    print(sys._getframe(0).f_code.co_name)
+    operator_1 = self.get_operator_value(operator_1)
+    operator_2 = self.get_operator_value(operator_2)
+    self.set_operator_value(result, operator_1 / operator_2)
 
   def and_op(self, operator_1, operator_2, result):
-    print(sys._getframe(0).f_code.co_name)
+    operator_1 = self.get_operator_value(operator_1)
+    operator_2 = self.get_operator_value(operator_2)
+    self.set_operator_value(result, operator_1 and operator_2)
 
   def mod_op(self, operator_1, operator_2, result):
-    print(sys._getframe(0).f_code.co_name)
+    operator_1 = self.get_operator_value(operator_1)
+    operator_2 = self.get_operator_value(operator_2)
+    self.set_operator_value(result, operator_1 % operator_2)
 
   def lt_op(self, operator_1, operator_2, result):
-    print(sys._getframe(0).f_code.co_name)
+    operator_1 = self.get_operator_value(operator_1)
+    operator_2 = self.get_operator_value(operator_2)
+    self.set_operator_value(result, operator_1 < operator_2)
 
   def le_op(self, operator_1, operator_2, result):
-    print(sys._getframe(0).f_code.co_name)
+    operator_1 = self.get_operator_value(operator_1)
+    operator_2 = self.get_operator_value(operator_2)
+    self.set_operator_value(result, operator_1 <= operator_2)
 
   def eq_op(self, operator_1, operator_2, result):
-    print(sys._getframe(0).f_code.co_name)
+    operator_1 = self.get_operator_value(operator_1)
+    operator_2 = self.get_operator_value(operator_2)
+    self.set_operator_value(result, operator_1 == operator_2)
 
   def ne_op(self, operator_1, operator_2, result):
-    print(sys._getframe(0).f_code.co_name)
+    operator_1 = self.get_operator_value(operator_1)
+    operator_2 = self.get_operator_value(operator_2)
+    self.set_operator_value(result, operator_1 != operator_2)
 
   def gt_op(self, operator_1, operator_2, result):
-    print(sys._getframe(0).f_code.co_name)
+    operator_1 = self.get_operator_value(operator_1)
+    operator_2 = self.get_operator_value(operator_2)
+    self.set_operator_value(result, operator_1 > operator_2)
 
   def ge_op(self, operator_1, operator_2, result):
-    print(sys._getframe(0).f_code.co_name)
+    operator_1 = self.get_operator_value(operator_1)
+    operator_2 = self.get_operator_value(operator_2)
+    self.set_operator_value(result, operator_1 >= operator_2)
 
   def goto_op(self, jump):
-    print(sys._getframe(0).f_code.co_name)
+    self.program_counter = jump - 1
 
   def gotofalse_op(self, operator, jump):
-    print(sys._getframe(0).f_code.co_name)
+    operator = self.get_operator_value(operator)
+    if not operator:
+      self.program_counter = jump - 1
 
   def gototrue_op(self, operator, jump):
-    print(sys._getframe(0).f_code.co_name)
+    operator = self.get_operator_value(operator)
+    if operator:
+      self.program_counter = jump - 1
 
   def gosub_op(self, jump):
-    print(sys._getframe(0).f_code.co_name)
+    self.calls_stack.append(self.program_counter)
+    self.program_counter = jump - 1
 
-  def return_op(self, var):
-    print(sys._getframe(0).f_code.co_name)
+  def return_op(self):
+    self.program_counter = self.calls_stack.pop() 
 
   def print_op(self, operator):
-    print(sys._getframe(0).f_code.co_name)
+    if operator == '\n':
+      print('')
+    elif operator[0] == '"':
+      print(operator[1:len(operator)-1], end= '')
+    else:
+      print(self.get_operator_value(operator), end= '')
 
   def input_op(self, operator):
-    print(sys._getframe(0).f_code.co_name)
+    self.set_operator_value(operator, raw_input())
 
   def store_op(self, operator_1, operator_2):
-    print(sys._getframe(0).f_code.co_name)
+    value = self.get_operator_value(operator_1)
+    self.set_operator_value(operator_2, value)
 
   def instruction(self, key):
     return {
@@ -97,6 +150,8 @@ class Executer:
 
   def execute(self):
     print("Executing...")
-    for q in self.quadruplets:
-      print(q[0])
-      print(self.instruction(q[0])(self, *q[1:len(q)-1]))
+    while self.program_counter < len(self.quadruplets):
+      q = self.quadruplets[self.program_counter]
+      self.instruction(q[0])(*q[1:len(q)])
+      self.program_counter = self.program_counter + 1
+    print('\n')

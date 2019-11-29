@@ -1,17 +1,15 @@
-int x, i;
+int x, y, z, i;
 
 function add() {
 	x = y + z;
 }
 
 function main() {
-	for(i = 2; i < 2; i++) {
-		if ( 8 > 10) {
-			x = x*x;
-		}
+	for(i = 2; i < 20; i++) {
+		cout << i << endl;
 	}
+	y = 4;
+	z = 5;
 	add();
-	cout << "Hola";
-	cin >> x >> popo;
-	x = 9 + 20;
+	cout << x;
 }

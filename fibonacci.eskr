@@ -1,0 +1,38 @@
+int i, num, a, b, c;
+
+function recursive(){
+    c = a + b;
+    a = b;
+    b = c;
+    cout << c << " ";
+    i = i + 1;
+    if (num - 1 > i){
+        recursive();
+    }
+}
+
+function fibonacci(){
+    a = 1;
+    b = 1;
+    c = 0;
+    cout << "Secuencia de 0 a " << num << ": " << endl; 
+    if (num == 0 || num == 1){
+        cout << num << " ";
+    }
+    if (num == 2){
+        cout << "1" << " " << "1" << " ";
+    } 
+    if (num > 2) {
+        cout << "1" << " " << "1" << " ";
+        i = 1;
+        recursive();
+    }
+}
+
+function main() {
+    do {
+        cout << "Ingrese un numero positivo:" << endl;
+        cin >> num;
+    } while (num < 0);
+    fibonacci();
+}

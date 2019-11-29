@@ -15,6 +15,7 @@ reserved = {
     'main' : 'MAIN',
     'cout' : 'COUT',
     'cin' : 'CIN',
+    'endl': 'ENDL'
  }
 
 tokens = [
