@@ -11,7 +11,7 @@ reserved = {
     'do' : 'DO',
     'function' : 'FUNCTION',
     'int' : 'INT',
-    'double' : 'DOUBLE',
+    'float' : 'FLOAT',
     'main' : 'MAIN',
     'cout' : 'COUT',
     'cin' : 'CIN',

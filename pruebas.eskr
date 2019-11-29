@@ -11,5 +11,7 @@ function main() {
 		}
 	}
 	add();
+	cout << "Hola";
+	cin >> x >> popo;
 	x = 9 + 20;
 }

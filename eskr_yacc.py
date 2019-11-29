@@ -3,6 +3,8 @@
 import ply.yacc as yacc
 # Get the token map from the lexer.  This is required.
 from eskr_lex import tokens
+from symbol import Symbol
+from executer import Executer
 
 start = 'program'
 
@@ -78,31 +80,47 @@ def p_proposition(p):
 
 def p_print(p):
   '''print : COUT output_expression
-     output_expression : OUTSTREAM expression output_expression
-                       | OUTSTREAM expression
-                       | OUTSTREAM TEXT output_expression
-                       | OUTSTREAM TEXT
+     output_expression : OUTSTREAM expression print_action output_expression
+                       | OUTSTREAM expression print_action
+                       | OUTSTREAM TEXT print_action output_expression
+                       | OUTSTREAM TEXT print_action
   '''
 
+def p_print_action(p):
+  'print_action :'
+  global quadruples
+  global operands_stack
+  if p[-1]:
+    quadruples.append(('print', p[-1]))
+  else:
+    quadruples.append(('print', operands_stack.pop()))
+
 def p_input(p):
-  '''input : CIN input_expression
-     input_expression : INSTREAM id input_expression
-                      | INSTREAM id
+  '''input : CIN input_expression 
+     input_expression : INSTREAM id input_action input_expression
+                      | INSTREAM id input_action  
   '''
+
+def p_input_action(p):
+  'input_action :'
+  global quadruples
+  global operands_stack
+  if p[-1]:
+    quadruples.append(('input', p[-1]))
 
 def p_declaration(p):
   'declaration : type variables' 
   global symbols_table
   for symbol in p[2]: 
     if symbol not in symbols_table: 
-      symbols_table[symbol] = p[1]  
+      symbols_table[symbol] = Symbol(symbol, p[1])
     else:
       print('Variable redeclaration')
       raise SyntaxError('Variable redeclaration')
 
 def p_type(p):
   '''type : INT
-          | DOUBLE'''
+          | FLOAT'''
   p[0] = p[1]
 
 def p_assignation(p):
@@ -127,7 +145,7 @@ def p_assignation_action_3(p):
   global operands_stack, operators_stack, quadruples
   value = operands_stack.pop()
   variable = operands_stack.pop()
-  quadruples.append((operators_stack.pop(), value, None, variable))
+  quadruples.append((operators_stack.pop(), value, variable))
 
 def p_unary_operation(p):
   '''unary_operation : ID PLUS PLUS
@@ -346,7 +364,7 @@ def p_expression_action_4(p):
   if len(operators_stack) and operators_stack[-1] in term_operators:
       operand_2 = operands_stack.pop()
       operand_1 = operands_stack.pop()
-      temporal = 'T' + str(temporal_count)
+      temporal = '#' + str(temporal_count)
       temporal_count = temporal_count + 1
       quadruples.append((operators_stack.pop(), operand_1, operand_2, temporal))
       operands_stack.append(temporal)
@@ -357,7 +375,7 @@ def p_expression_action_5(p):
   if len(operators_stack) and operators_stack[-1] in factor_operators:
       operand_2 = operands_stack.pop()
       operand_1 = operands_stack.pop()
-      temporal = 'T' + str(temporal_count)
+      temporal = '#' + str(temporal_count)
       temporal_count = temporal_count + 1
       quadruples.append((operators_stack.pop(), operand_1, operand_2, temporal))
       operands_stack.append(temporal)
@@ -383,7 +401,7 @@ def p_expression_action_9(p):
   if len(operators_stack) and operators_stack[-1] in relation_operators:
       operand_2 = operands_stack.pop()
       operand_1 = operands_stack.pop()
-      temporal = 'T' + str(temporal_count)
+      temporal = '#' + str(temporal_count)
       temporal_count = temporal_count + 1
       quadruples.append((operators_stack.pop(), operand_1, operand_2, temporal))
       operands_stack.append(temporal)
@@ -398,3 +416,6 @@ print(symbols_table)
 print(functions_table)
 for i in range(len(quadruples)):
   print(i, quadruples[i])
+
+executer = Executer(quadruples, symbols_table, temporal_count)
+executer.execute()
