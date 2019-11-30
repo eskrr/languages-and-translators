@@ -1,0 +1,35 @@
+int x[100], size, i, j, dato, temp;
+
+function sort() {
+    for (i = 0; i < size; i++){
+        for (j = i + 1; j < size; j++){
+            if (x[i] > x[j]){
+                temp = x[i];
+                x[i] = x[j];
+                x[j] = temp;
+            }
+        }  
+    }  
+}
+
+function leer() {
+	for (i = 0; i < size; i++) {
+		cin >> dato;
+		x[i] = dato;
+	}
+}
+
+function print() {
+	for (i = 0; i < size; i++) {
+		cout << x[i] << " ";
+	}
+}
+
+function main() {
+	cout << "Introduce el tamaño del arreglo: " << endl;
+	cin >> size;
+	leer();
+	sort();
+	print();
+	cout << endl;
+}

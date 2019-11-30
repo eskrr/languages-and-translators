@@ -1,6 +1,7 @@
  # Yacc example
  
 import ply.yacc as yacc
+import numpy as np
 # Get the token map from the lexer.  This is required.
 from eskr_lex import tokens
 from symbol import Symbol
@@ -18,7 +19,9 @@ global term_operators
 global factor_operators
 global relation_operators
 global temporal_count
+global dimensions_queue
 
+dimensions_queue = []
 operators_stack = []
 operands_stack = []
 functions_table = {}
@@ -116,12 +119,22 @@ def p_input_action(p):
 def p_declaration(p):
   'declaration : type variables' 
   global symbols_table
+  global dimensions_queue
   for symbol in p[2]: 
-    if symbol not in symbols_table: 
+    if symbol not in symbols_table:
       symbols_table[symbol] = Symbol(symbol, p[1])
     else:
       print('Variable redeclaration')
       raise SyntaxError('Variable redeclaration')
+  while (len(dimensions_queue)):
+    print('SIMBOLO: ', symbol)
+    symbol = dimensions_queue.pop(0).replace('#', '')
+    rows = dimensions_queue.pop(0)
+    if len(dimensions_queue) and isinstance(dimensions_queue[0], int):
+      cols = dimensions_queue.pop(0)
+      symbols_table[symbol].value = np.empty((rows, cols), symbols_table[symbol].type)
+    else:
+      symbols_table[symbol].value = np.empty(rows, symbols_table[symbol].type)
 
 def p_type(p):
   '''type : INT
@@ -133,10 +146,23 @@ def p_assignation(p):
 
 def p_assignation_action_1(p):
   'assignation_action_1 :'
-  global operands_stack, symbols_table
+  global operands_stack, symbols_table, dimensions_queue
+  print('ASIGNACIONOOOO')
   if p[-1] in symbols_table:
-    operands_stack.append(p[-1])
-  else:
+    if len(dimensions_queue) and p[-1] == dimensions_queue[0].replace('#', ''):
+      dimensions_queue.pop(0)
+      row = dimensions_queue.pop(0)
+      if len(dimensions_queue) and isinstance(dimensions_queue[0], int):
+        col = dimensions_queue.pop(0)
+        operands_stack.append('{}/{}/{}'.format(p[-1], row, col))
+      elif len(dimensions_queue) and '##' not in dimensions_queue[0]:
+        col = dimensions_queue.pop(0)
+        operands_stack.append('{}/{}/{}'.format(p[-1], row, col))
+      else:
+        operands_stack.append('{}/{}'.format(p[-1],row))
+    else:  
+      operands_stack.append(p[-1])
+  else  :
     print('Variable not declared ' + p[-1])
     raise SyntaxError('Variable not declared ' + p[-1])
 
@@ -172,16 +198,24 @@ def p_variables(p):
 
 def p_id(p):
   '''id : ID
-        | ID vector
-        | ID vector vector
-  ''' 
+        | ID mark_vector vector
+        | ID mark_vector vector vector'''
   p[0] = p[1]
 
+def p_mark_vector(p):
+  'mark_vector :'
+  global dimensions_queue
+  dimensions_queue.append('##' + p[-1])
+
 def p_vector(p):
-  '''vector : LBRACKET integer RBRACKET
-            | LBRACKET ID RBRACKET  
-            | LBRACKET empty RBRACKET
-  ''' 
+  '''vector : LBRACKET integer vector_action RBRACKET
+     vector : LBRACKET ID vector_action RBRACKET
+  '''
+
+def p_vector_action(p):
+  'vector_action :'
+  global dimensions_queue
+  dimensions_queue.append(p[-1])
 
 def p_function_call(p):
   'function_call : ID function_call_action LPAREN RPAREN'
@@ -353,8 +387,20 @@ def p_error(p):
 
 def p_expression_action_1(p):
   'expression_action_1 :'
-  global operands_stack
-  operands_stack.append(p[-1])
+  global operands_stack, dimensions_queue
+  if len(dimensions_queue) and isinstance(p[-1], str) and p[-1] == dimensions_queue[0].replace('#', ''):
+    dimensions_queue.pop(0)
+    row = dimensions_queue.pop(0)
+    if len(dimensions_queue) and isinstance(dimensions_queue[0], int):
+      col = dimensions_queue.pop(0)
+      operands_stack.append('{}/{}/{}'.format(p[-1], row, col))
+    elif len(dimensions_queue) and '##' not in dimensions_queue[0]:
+      col = dimensions_queue.pop(0)
+      operands_stack.append('{}/{}/{}'.format(p[-1], row, col))
+    else:
+      operands_stack.append('{}/{}'.format(p[-1],row))
+  else:
+    operands_stack.append(p[-1])
 
 def p_expression_action_2(p):
   'expression_action_2 :'
@@ -417,10 +463,8 @@ def p_expression_action_9(p):
 # Build the parser
 parser = yacc.yacc()
 
-s = file('if.eskr', 'r').read()
+s = file('multiply.eskr', 'r').read()
 result = parser.parse(s)
-print(symbols_table)
-print(functions_table)
 for i in range(len(quadruples)):
   print(i, quadruples[i])
 

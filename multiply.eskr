@@ -2,7 +2,7 @@ int matrix1[5][5], rows_1, cols_1;
 int matrix2[5][5], rows_2, cols_2;
 int matrixResultado[5][5];
 int medidas_correctas;
-int i, j, dato;
+int i, j, k, dato;
 
 function leerDatosMatrices() {
 	medidas_correctas = 0;
@@ -15,7 +15,7 @@ function leerDatosMatrices() {
 		cin >> rows_2;
 		cout << "Ingrese el numero de columnas de la matriz 2" << endl;
 		cin >> cols_2;
-		if (rows_1 == rows_2 && cols_1 == cols_2) {
+		if (cols_1 == rows_2) {
 			medidas_correctas = 1;
 		} else {
 			cout << "Incorrecto, las dimensiones deben ser iguales, intente de nuevo.";
@@ -34,8 +34,8 @@ function leerMatriz1() {
 }
 
 function leerMatriz2() {
-	for (i = 0; i < rows_1; i++) {
-		for (j = 0; j < cols_1; j++) {
+	for (i = 0; i < rows_2; i++) {
+		for (j = 0; j < cols_2; j++) {
 			cout << "row: " << i << "col: " << j << endl;
 			cin >> dato;
 			matrix2[i][j] = dato;
@@ -43,19 +43,29 @@ function leerMatriz2() {
 	}
 }
 
-function sumarMatrices() {
-	for (i = 0; i < rows_1; i++) {
-		for (j = 0; j < cols_1; j++) {
-			matrixResultado[i][j] = matrix1[i][j] + matrix2[i][j];
+
+function fillZeros() {
+	for (i = 0; i < 5; i++) {
+		for (j = 0; j < 5; j++) {
+			matrixResultado[i][j] = 0;
 		}
 	}
 }
 
+function mulMatrices() {
+    for (i = 0; i < rows_1; i++){
+        for (j = 0; j < cols_1; j++){
+            matrixResultado[i][j] = 0;
+            for (k = 0; k < rows_2; k++) {
+                matrixResultado[i][j] = matrixResultado[i][j] + matrix1[i][k] * matrix2[k][j];
+            }
+        }
+    }
+}
+
 function printMatrixResultado() {
-	rows_1 = 4;
-	rows_2 = 4;
 	for (i = 0; i < rows_1; i++) {
-		for (j = 0; j < cols_1; j++) {
+		for (j = 0; j < cols_2; j++) {
 			cout << matrixResultado[i][j] << " ";
 		}
 		cout << endl;
@@ -66,6 +76,7 @@ function main() {
 	leerDatosMatrices();
 	leerMatriz1();
 	leerMatriz2();
-	sumarMatrices();
+	fillZeros();
+	mulMatrices();
 	printMatrixResultado();
 }

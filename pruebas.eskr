@@ -1,15 +1,6 @@
-int x, y, z, i;
-
-function add() {
-	x = y + z;
-}
+int x[5][5], y;
 
 function main() {
-	for(i = 2; i < 20; i++) {
-		cout << i << endl;
-	}
-	y = 4;
-	z = 5;
-	add();
-	cout << x;
+	y = 3;
+	x[y][3] = y[y];
 }

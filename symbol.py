@@ -1,7 +1,7 @@
 class Symbol:
-  def __init__(self, id, type):
+  def __init__(self, id, type, value = None):
     self.type = type
-    self.value = None
+    self.value = value
 
   # def set_value(self, value):
   #   self.value = 

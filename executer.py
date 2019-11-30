@@ -11,17 +11,37 @@ class Executer:
     self.calls_stack = []
 
   def get_operator_value(self, operator):
-    if type(operator) is str: 
-      if operator[0] == '#':
-        return self.temporals[int(operator[1:len(operator)])]
-      return self.symbols_table[operator].value
+    if isinstance(operator, str) and '/' in operator:
+      operators = operator.split('/')
+      for o in range(1, len(operators)):
+        if not operators[o].isdigit():
+          operators[o] = self.get_operator_value(operators[o])
+      if len(operators) == 3:
+        return self.symbols_table[operators[0]].value[int(operators[1])][int(operators[2])]
+      else:
+        return self.symbols_table[operators[0]].value[int(operators[1])]
+    else:  
+      if type(operator) is str: 
+        if operator[0] == '#':
+          return self.temporals[int(operator[1:len(operator)])]
+        return self.symbols_table[operator].value
     return operator
 
   def set_operator_value(self, operator, value):
-    if operator[0] == '#':
-      self.temporals[int(operator[1:len(operator)])] = value
-    else:
-      self.symbols_table[operator].value = eval(self.symbols_table[operator].type)(value)
+    if isinstance(operator, str) and '/' in operator:
+      operators = operator.split('/')
+      for o in range(1, len(operators)):
+        if not operators[o].isdigit():
+          operators[o] = self.get_operator_value(operators[o])
+      if len(operators) == 3:
+        self.symbols_table[operators[0]].value[int(operators[1])][int(operators[2])] = value
+      else:
+        self.symbols_table[operators[0]].value[int(operators[1])] = value
+    else:  
+      if operator[0] == '#':
+        self.temporals[int(operator[1:len(operator)])] = value
+      else:
+        self.symbols_table[operator].value = eval(self.symbols_table[operator].type)(value)
 
   def add_op(self, operator_1, operator_2, result):
     operator_1 = self.get_operator_value(operator_1)
